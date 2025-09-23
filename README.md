@@ -90,3 +90,36 @@ plt.title("Feature Importance - Logistic Regression")
 - 採用原始資料處理不平衡問題（SMOTE、異常偵測）
 - 模型部署：串接 API 實現即時預警
 - 加入時序元素、客戶 ID，打造更個人化的動態風控系統
+
+## 📘 AlternativeMethods.ipynb 概覽
+
+此筆記本示範在原始極度不平衡資料上，除了基礎邏輯回歸外的多種「替代方法」，並以更適合不平衡場景的指標（PR-AUC）做比較。
+
+### 方法
+- 監督式：
+  - Logistic Regression（class_weight='balanced'，搭配閾值調整）
+  - RandomForestClassifier（class_weight='balanced_subsample'）
+- 非監督/半監督（異常偵測）：
+  - IsolationForest（contamination≈訓練集詐欺比例）
+  - Local Outlier Factor（novelty=True）
+
+### 評估與視覺化
+- 指標：ROC-AUC、PR-AUC（Average Precision）
+- 曲線：ROC、Precision-Recall 曲線
+- 閾值：可依目標 Recall（例：80%）自動挑選對應的決策閾值
+- 解釋性：使用 SHAP 對 RandomForest 進行特徵重要度解讀（摘要圖/長條圖）
+
+### 比較表如何解讀
+- 表格按 PR-AUC 由高到低排序；在極不平衡情境下，PR-AUC比ROC-AUC更具代表性。
+- PR-AUC 的隨機基線 ≈ 詐欺率；高於基線才有實質價值。
+- 同一模型下，"~80%R" 代表將閾值調到達到目標 Recall 的運作點，可觀察 Precision 與誤報的取捨。
+- 綜合常見結果：若有足夠且近期標註，監督式通常優於非監督；非監督適合補捉新型未知樣態。
+
+### 如何執行
+1. 安裝依賴：`pip install -r requirements.txt`
+2. 確認專案根目錄存在 `creditcard.csv`
+3. 開啟並依序執行 `AlternativeMethods.ipynb`
+
+### 實務建議
+- 部署以監督式為主（依業務目標 Recall 選閾值），非監督作為新型可疑流量的補捉器與特徵來源。
+- 加上機率校準（Platt/Isotonic）、漂移監控與定期重訓排程。
